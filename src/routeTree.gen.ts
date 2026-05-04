@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppWatchRouteImport } from './routes/_app/watch'
+import { Route as AppMineRouteImport } from './routes/_app/mine'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
 import { Route as AppChatRouteImport } from './routes/_app/chat'
 
@@ -35,6 +36,11 @@ const AppWatchRoute = AppWatchRouteImport.update({
   path: '/watch',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMineRoute = AppMineRouteImport.update({
+  id: '/mine',
+  path: '/mine',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppFeedRoute = AppFeedRouteImport.update({
   id: '/feed',
   path: '/feed',
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/chat': typeof AppChatRoute
   '/feed': typeof AppFeedRoute
+  '/mine': typeof AppMineRoute
   '/watch': typeof AppWatchRoute
 }
 export interface FileRoutesByTo {
@@ -58,6 +65,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/chat': typeof AppChatRoute
   '/feed': typeof AppFeedRoute
+  '/mine': typeof AppMineRoute
   '/watch': typeof AppWatchRoute
 }
 export interface FileRoutesById {
@@ -67,13 +75,14 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_app/chat': typeof AppChatRoute
   '/_app/feed': typeof AppFeedRoute
+  '/_app/mine': typeof AppMineRoute
   '/_app/watch': typeof AppWatchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/chat' | '/feed' | '/watch'
+  fullPaths: '/' | '/auth' | '/chat' | '/feed' | '/mine' | '/watch'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/chat' | '/feed' | '/watch'
+  to: '/' | '/auth' | '/chat' | '/feed' | '/mine' | '/watch'
   id:
     | '__root__'
     | '/'
@@ -81,6 +90,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_app/chat'
     | '/_app/feed'
+    | '/_app/mine'
     | '/_app/watch'
   fileRoutesById: FileRoutesById
 }
@@ -120,6 +130,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWatchRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/mine': {
+      id: '/_app/mine'
+      path: '/mine'
+      fullPath: '/mine'
+      preLoaderRoute: typeof AppMineRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/feed': {
       id: '/_app/feed'
       path: '/feed'
@@ -140,12 +157,14 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppChatRoute: typeof AppChatRoute
   AppFeedRoute: typeof AppFeedRoute
+  AppMineRoute: typeof AppMineRoute
   AppWatchRoute: typeof AppWatchRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppChatRoute: AppChatRoute,
   AppFeedRoute: AppFeedRoute,
+  AppMineRoute: AppMineRoute,
   AppWatchRoute: AppWatchRoute,
 }
 
