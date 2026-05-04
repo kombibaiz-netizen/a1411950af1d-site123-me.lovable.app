@@ -47,7 +47,9 @@ function Wallet() {
   useEffect(() => {
     const i = setInterval(() => {
       if (history.some(w => w.status === "pending")) {
-        supabase.rpc("process_pending_withdrawals" as never).then(() => loadHistory()).catch(() => {});
+        (async () => {
+          try { await supabase.rpc("process_pending_withdrawals" as never); await loadHistory(); } catch {}
+        })();
       }
     }, 5000);
     return () => clearInterval(i);
