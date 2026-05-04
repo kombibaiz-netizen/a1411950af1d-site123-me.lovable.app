@@ -49,6 +49,42 @@ export type Database = {
           },
         ]
       }
+      partners: {
+        Row: {
+          company_name: string
+          contact_email: string
+          created_at: string
+          id: string
+          message: string | null
+          monthly_budget_usd: number
+          partnership_type: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          contact_email: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          monthly_budget_usd?: number
+          partnership_type: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          contact_email?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          monthly_budget_usd?: number
+          partnership_type?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

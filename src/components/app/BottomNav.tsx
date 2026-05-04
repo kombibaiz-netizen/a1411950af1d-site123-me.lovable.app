@@ -1,11 +1,11 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Sparkles, MessageCircle, Film, Pickaxe, Wallet } from "lucide-react";
+import { Sparkles, MessageCircle, Film, Wallet, Handshake } from "lucide-react";
 
 const items = [
   { to: "/feed", label: "Feed", icon: Sparkles },
   { to: "/chat", label: "Chat", icon: MessageCircle },
   { to: "/watch", label: "Watch", icon: Film },
-  { to: "/mine", label: "Mine", icon: Pickaxe },
+  { to: "/partners", label: "Partner", icon: Handshake },
   { to: "/wallet", label: "Wallet", icon: Wallet },
 ] as const;
 
