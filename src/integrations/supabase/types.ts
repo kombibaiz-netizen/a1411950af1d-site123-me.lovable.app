@@ -185,6 +185,10 @@ export type Database = {
         Args: { p_amount: number; p_destination: string; p_method: string }
         Returns: string
       }
+      spend_sats: {
+        Args: { p_amount: number; p_metadata?: Json; p_reason: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
