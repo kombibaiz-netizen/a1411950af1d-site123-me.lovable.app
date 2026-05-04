@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppWatchRouteImport } from './routes/_app/watch'
+import { Route as AppWalletRouteImport } from './routes/_app/wallet'
 import { Route as AppMineRouteImport } from './routes/_app/mine'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
 import { Route as AppChatRouteImport } from './routes/_app/chat'
@@ -34,6 +35,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppWatchRoute = AppWatchRouteImport.update({
   id: '/watch',
   path: '/watch',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppWalletRoute = AppWalletRouteImport.update({
+  id: '/wallet',
+  path: '/wallet',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMineRoute = AppMineRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof AppChatRoute
   '/feed': typeof AppFeedRoute
   '/mine': typeof AppMineRoute
+  '/wallet': typeof AppWalletRoute
   '/watch': typeof AppWatchRoute
 }
 export interface FileRoutesByTo {
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/chat': typeof AppChatRoute
   '/feed': typeof AppFeedRoute
   '/mine': typeof AppMineRoute
+  '/wallet': typeof AppWalletRoute
   '/watch': typeof AppWatchRoute
 }
 export interface FileRoutesById {
@@ -76,13 +84,14 @@ export interface FileRoutesById {
   '/_app/chat': typeof AppChatRoute
   '/_app/feed': typeof AppFeedRoute
   '/_app/mine': typeof AppMineRoute
+  '/_app/wallet': typeof AppWalletRoute
   '/_app/watch': typeof AppWatchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/chat' | '/feed' | '/mine' | '/watch'
+  fullPaths: '/' | '/auth' | '/chat' | '/feed' | '/mine' | '/wallet' | '/watch'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/chat' | '/feed' | '/mine' | '/watch'
+  to: '/' | '/auth' | '/chat' | '/feed' | '/mine' | '/wallet' | '/watch'
   id:
     | '__root__'
     | '/'
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/_app/chat'
     | '/_app/feed'
     | '/_app/mine'
+    | '/_app/wallet'
     | '/_app/watch'
   fileRoutesById: FileRoutesById
 }
@@ -130,6 +140,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWatchRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/wallet': {
+      id: '/_app/wallet'
+      path: '/wallet'
+      fullPath: '/wallet'
+      preLoaderRoute: typeof AppWalletRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/mine': {
       id: '/_app/mine'
       path: '/mine'
@@ -158,6 +175,7 @@ interface AppRouteChildren {
   AppChatRoute: typeof AppChatRoute
   AppFeedRoute: typeof AppFeedRoute
   AppMineRoute: typeof AppMineRoute
+  AppWalletRoute: typeof AppWalletRoute
   AppWatchRoute: typeof AppWatchRoute
 }
 
@@ -165,6 +183,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppChatRoute: AppChatRoute,
   AppFeedRoute: AppFeedRoute,
   AppMineRoute: AppMineRoute,
+  AppWalletRoute: AppWalletRoute,
   AppWatchRoute: AppWatchRoute,
 }
 
