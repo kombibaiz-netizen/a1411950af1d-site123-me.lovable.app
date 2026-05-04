@@ -4,7 +4,7 @@ export async function addEarning(source: string, amount: number, metadata: Recor
   const { data, error } = await supabase.rpc("add_earning", {
     p_source: source,
     p_amount: amount,
-    p_metadata: metadata,
+    p_metadata: metadata as never,
   });
   if (error) throw error;
   return data as number;
