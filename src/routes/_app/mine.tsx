@@ -10,11 +10,24 @@ export const Route = createFileRoute("/_app/mine")({ component: Mine });
 
 function Mine() {
   const { refreshProfile } = useAuth();
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
+  const [autoClaim, setAutoClaim] = useState(true);
   const [hashRate, setHashRate] = useState(0);
   const [pending, setPending] = useState(0);
   const [boost, setBoost] = useState(1);
   const tick = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Auto-start mining session on mount + restore any prior pending
+  useEffect(() => {
+    const saved = Number(localStorage.getItem("mine_pending") || "0");
+    if (saved > 0) setPending(saved);
+    toast.success("Mining session auto-started", { id: "auto-mine", duration: 1500 });
+  }, []);
+
+  // Persist pending so the session feels continuous across reloads
+  useEffect(() => {
+    localStorage.setItem("mine_pending", String(pending));
+  }, [pending]);
 
   useEffect(() => {
     if (!active) {
@@ -31,14 +44,26 @@ function Mine() {
 
   const claim = async () => {
     const amount = Math.floor(pending);
-    if (amount < 1) return toast.error("Mine more first");
+    if (amount < 1) {
+      toast.error("Mine more first");
+      return false;
+    }
     try {
       await addEarning("mining", amount, { boost });
       setPending(0);
       refreshProfile();
       toast.success(`+${amount} sats claimed!`);
+      return true;
     } catch { toast.error("Failed"); }
+    return false;
   };
+
+  // Auto-claim when pending crosses a threshold
+  useEffect(() => {
+    if (!autoClaim) return;
+    if (pending >= 25) { claim(); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pending, autoClaim]);
 
   const activateBoost = () => {
     setBoost(3);
@@ -75,6 +100,13 @@ function Mine() {
           <Zap className="h-4 w-4 mr-1" /> 3× Boost
         </Button>
       </div>
+
+      <button
+        onClick={() => setAutoClaim((v) => !v)}
+        className={`w-full rounded-2xl p-3 text-sm font-medium border transition ${autoClaim ? "bg-primary/10 border-primary text-primary" : "bg-card border-border"}`}
+      >
+        {autoClaim ? "Auto-claim ON · sends every 25 sats" : "Enable auto-claim"}
+      </button>
 
       <div className="rounded-2xl bg-card border border-border p-4 text-xs text-muted-foreground">
         <strong className="text-foreground">Note:</strong> This is a gamified reward system, not actual SHA-256 mining. Sats come from the platform's reward pool.
