@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Heart, Plus, Zap } from "lucide-react";
+import { Heart, Plus, Zap, Bot } from "lucide-react";
 import { addEarning } from "@/lib/earn";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
@@ -19,6 +19,9 @@ const POSTS = [
 function Feed() {
   const { refreshProfile } = useAuth();
   const [earned, setEarned] = useState(0);
+  const [auto, setAuto] = useState(false);
+  const [autoCount, setAutoCount] = useState(0);
+  const [cooldown, setCooldown] = useState(0);
   const seen = useRef<Set<number>>(new Set());
 
   useEffect(() => {
@@ -45,17 +48,48 @@ function Feed() {
 
   const watchAd = async () => {
     toast.loading("Watching sponsored content...", { id: "ad" });
-    setTimeout(async () => {
-      try {
-        await addEarning("scroll", 50, { type: "ad" });
-        setEarned((e) => e + 50);
-        refreshProfile();
-        toast.success("+50 sats from ad", { id: "ad" });
-      } catch (err: unknown) {
-        toast.error("Failed", { id: "ad" });
-      }
-    }, 1500);
+    return new Promise<boolean>((resolve) => {
+      setTimeout(async () => {
+        try {
+          await addEarning("scroll", 50, { type: "ad" });
+          setEarned((e) => e + 50);
+          refreshProfile();
+          toast.success("+50 sats from ad", { id: "ad" });
+          resolve(true);
+        } catch {
+          toast.error("Failed", { id: "ad" });
+          resolve(false);
+        }
+      }, 1500);
+    });
   };
+
+  // Auto-watch sponsored loop: one ad every 30s while enabled
+  useEffect(() => {
+    if (!auto) return;
+    let cancelled = false;
+    const AD_INTERVAL = 30;
+    let remaining = 0;
+
+    const runAd = async () => {
+      if (cancelled) return;
+      const ok = await watchAd();
+      if (ok) setAutoCount((c) => c + 1);
+      remaining = AD_INTERVAL;
+      setCooldown(remaining);
+    };
+
+    runAd();
+    const i = setInterval(() => {
+      if (cancelled) return;
+      remaining = Math.max(0, remaining - 1);
+      setCooldown(remaining);
+      if (remaining === 0) runAd();
+    }, 1000);
+
+    return () => { cancelled = true; clearInterval(i); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auto]);
 
   return (
     <div className="px-4 py-4 space-y-4">
@@ -69,9 +103,23 @@ function Feed() {
         </div>
       </div>
 
-      <button onClick={watchAd} className="w-full rounded-2xl bg-gradient-primary text-primary-foreground p-4 font-semibold flex items-center justify-center gap-2 shadow-glow">
-        <Zap className="h-4 w-4" /> Watch sponsored — earn 50 sats
-      </button>
+      <div className="space-y-2">
+        <button onClick={watchAd} className="w-full rounded-2xl bg-gradient-primary text-primary-foreground p-4 font-semibold flex items-center justify-center gap-2 shadow-glow">
+          <Zap className="h-4 w-4" /> Watch sponsored — earn 50 sats
+        </button>
+        <button
+          onClick={() => setAuto((a) => !a)}
+          className={`w-full rounded-2xl p-3 font-medium flex items-center justify-between gap-2 border transition ${auto ? "bg-primary/10 border-primary text-primary" : "bg-card border-border text-foreground"}`}
+        >
+          <span className="flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            {auto ? "Auto-watch ON" : "Enable auto-watch agent"}
+          </span>
+          <span className="text-xs font-mono opacity-80">
+            {auto ? (cooldown > 0 ? `next in ${cooldown}s · ${autoCount} ads` : `running · ${autoCount} ads`) : "+50 sats / 30s"}
+          </span>
+        </button>
+      </div>
 
       {POSTS.map((p, i) => (
         <article key={i} data-idx={i} className={`rounded-2xl border border-border bg-gradient-to-br ${p.color} bg-card p-5 min-h-[280px] flex flex-col justify-between shadow-card`}>
