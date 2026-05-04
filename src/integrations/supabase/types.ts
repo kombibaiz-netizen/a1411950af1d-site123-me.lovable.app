@@ -14,13 +14,141 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      earnings: {
+        Row: {
+          amount_sats: number
+          created_at: string
+          id: string
+          metadata: Json | null
+          source: string
+          user_id: string
+        }
+        Insert: {
+          amount_sats: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          source: string
+          user_id: string
+        }
+        Update: {
+          amount_sats?: number
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "earnings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          id: string
+          referral_code: string
+          referred_by: string | null
+          sats_balance: number
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          id: string
+          referral_code: string
+          referred_by?: string | null
+          sats_balance?: number
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_by?: string | null
+          sats_balance?: number
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      withdrawals: {
+        Row: {
+          amount_sats: number
+          completed_at: string | null
+          created_at: string
+          destination: string
+          id: string
+          method: string
+          process_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount_sats: number
+          completed_at?: string | null
+          created_at?: string
+          destination: string
+          id?: string
+          method: string
+          process_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount_sats?: number
+          completed_at?: string | null
+          created_at?: string
+          destination?: string
+          id?: string
+          method?: string
+          process_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_earning: {
+        Args: { p_amount: number; p_metadata?: Json; p_source: string }
+        Returns: number
+      }
+      generate_referral_code: { Args: never; Returns: string }
+      process_pending_withdrawals: { Args: never; Returns: undefined }
+      request_withdrawal: {
+        Args: { p_amount: number; p_destination: string; p_method: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
