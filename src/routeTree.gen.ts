@@ -14,6 +14,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppWatchRouteImport } from './routes/_app/watch'
 import { Route as AppWalletRouteImport } from './routes/_app/wallet'
+import { Route as AppReelsRouteImport } from './routes/_app/reels'
 import { Route as AppPartnersRouteImport } from './routes/_app/partners'
 import { Route as AppMineRouteImport } from './routes/_app/mine'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
@@ -41,6 +42,11 @@ const AppWatchRoute = AppWatchRouteImport.update({
 const AppWalletRoute = AppWalletRouteImport.update({
   id: '/wallet',
   path: '/wallet',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReelsRoute = AppReelsRouteImport.update({
+  id: '/reels',
+  path: '/reels',
   getParentRoute: () => AppRoute,
 } as any)
 const AppPartnersRoute = AppPartnersRouteImport.update({
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/feed': typeof AppFeedRoute
   '/mine': typeof AppMineRoute
   '/partners': typeof AppPartnersRoute
+  '/reels': typeof AppReelsRoute
   '/wallet': typeof AppWalletRoute
   '/watch': typeof AppWatchRoute
 }
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/feed': typeof AppFeedRoute
   '/mine': typeof AppMineRoute
   '/partners': typeof AppPartnersRoute
+  '/reels': typeof AppReelsRoute
   '/wallet': typeof AppWalletRoute
   '/watch': typeof AppWatchRoute
 }
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/_app/feed': typeof AppFeedRoute
   '/_app/mine': typeof AppMineRoute
   '/_app/partners': typeof AppPartnersRoute
+  '/_app/reels': typeof AppReelsRoute
   '/_app/wallet': typeof AppWalletRoute
   '/_app/watch': typeof AppWatchRoute
 }
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/feed'
     | '/mine'
     | '/partners'
+    | '/reels'
     | '/wallet'
     | '/watch'
   fileRoutesByTo: FileRoutesByTo
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/feed'
     | '/mine'
     | '/partners'
+    | '/reels'
     | '/wallet'
     | '/watch'
   id:
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/_app/feed'
     | '/_app/mine'
     | '/_app/partners'
+    | '/_app/reels'
     | '/_app/wallet'
     | '/_app/watch'
   fileRoutesById: FileRoutesById
@@ -173,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppWalletRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/reels': {
+      id: '/_app/reels'
+      path: '/reels'
+      fullPath: '/reels'
+      preLoaderRoute: typeof AppReelsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/partners': {
       id: '/_app/partners'
       path: '/partners'
@@ -209,6 +228,7 @@ interface AppRouteChildren {
   AppFeedRoute: typeof AppFeedRoute
   AppMineRoute: typeof AppMineRoute
   AppPartnersRoute: typeof AppPartnersRoute
+  AppReelsRoute: typeof AppReelsRoute
   AppWalletRoute: typeof AppWalletRoute
   AppWatchRoute: typeof AppWatchRoute
 }
@@ -218,6 +238,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppFeedRoute: AppFeedRoute,
   AppMineRoute: AppMineRoute,
   AppPartnersRoute: AppPartnersRoute,
+  AppReelsRoute: AppReelsRoute,
   AppWalletRoute: AppWalletRoute,
   AppWatchRoute: AppWatchRoute,
 }
@@ -232,3 +253,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
