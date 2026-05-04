@@ -19,3 +19,13 @@ export async function requestWithdrawal(method: string, destination: string, amo
   if (error) throw error;
   return data as string;
 }
+
+export async function spendSats(amount: number, reason: string, metadata: Record<string, unknown> = {}) {
+  const { data, error } = await supabase.rpc("spend_sats", {
+    p_amount: amount,
+    p_reason: reason,
+    p_metadata: metadata as never,
+  });
+  if (error) throw error;
+  return data as number;
+}
