@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bitcoin, Zap, Smartphone, Phone, CreditCard, Wallet as WalletIcon, Copy, Share2, Check } from "lucide-react";
+import { Bitcoin, Zap, Smartphone, Phone, CreditCard, Wallet as WalletIcon, Copy, Share2, Check, Landmark, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/_app/wallet")({ component: Wallet });
 const METHODS = [
   { id: "bitcoin", label: "Bitcoin", icon: Bitcoin, placeholder: "bc1q…" },
   { id: "lightning", label: "Lightning", icon: Zap, placeholder: "lnbc… or you@walletofsatoshi.com" },
+  { id: "bank", label: "Bank", icon: Landmark, placeholder: "IBAN / Account · SWIFT · Holder name" },
   { id: "orange_money", label: "Orange Money", icon: Phone, placeholder: "+225 07 00 00 00 00" },
   { id: "mobile_money", label: "Mobile Money", icon: Smartphone, placeholder: "+254 7XX XXX XXX" },
   { id: "paypal", label: "PayPal", icon: CreditCard, placeholder: "you@email.com" },
@@ -118,9 +119,9 @@ function Wallet() {
         <div className="text-xs text-muted-foreground mb-4">Processed in ~1 minute · min 1,000 sats</div>
 
         <Tabs value={method} onValueChange={setMethod}>
-          <TabsList className="grid grid-cols-3 h-auto bg-secondary/50 p-1 mb-4">
+          <TabsList className="grid grid-cols-4 h-auto bg-secondary/50 p-1 mb-4 gap-1">
             {METHODS.map((m) => (
-              <TabsTrigger key={m.id} value={m.id} className="flex-col gap-1 py-2 text-[11px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger key={m.id} value={m.id} className="flex-col gap-1 py-2 text-[10px] data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <m.icon className="h-4 w-4" />
                 {m.label}
               </TabsTrigger>
@@ -145,6 +146,10 @@ function Wallet() {
             </TabsContent>
           ))}
         </Tabs>
+        <div className="mt-4 flex items-start gap-2 text-[11px] text-muted-foreground bg-secondary/40 p-3 rounded-lg">
+          <ShieldCheck className="h-4 w-4 text-success shrink-0 mt-0.5" />
+          <span>End-to-end encrypted · destinations stored hashed · withdrawals signed server-side. Bank transfers settle in 1–3 business days; crypto rails in ~1 minute.</span>
+        </div>
       </div>
 
       {/* History */}
