@@ -33,10 +33,14 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "SatsEarn — Earn Bitcoin while you scroll, chat & watch" },
       { name: "description", content: "Earn Satoshi by scrolling, chatting, watching, and idle mining. Withdraw via Bitcoin, Lightning, Orange Money, Mobile Money, PayPal & Binance." },
-      { property: "og:title", content: "SatsEarn — Earn Bitcoin online" },
-      { property: "og:description", content: "Stack sats from your phone." },
+      { property: "og:title", content: "SatsEarn — Earn Bitcoin while you scroll, chat & watch" },
+      { property: "og:description", content: "Earn Satoshi by scrolling, chatting, watching, and idle mining. Withdraw via Bitcoin, Lightning, Orange Money, Mobile Money, PayPal & Binance." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "SatsEarn — Earn Bitcoin while you scroll, chat & watch" },
+      { name: "twitter:description", content: "Earn Satoshi by scrolling, chatting, watching, and idle mining. Withdraw via Bitcoin, Lightning, Orange Money, Mobile Money, PayPal & Binance." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/08c768bc-214c-4e13-ac06-2fedf6f7b768" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/08c768bc-214c-4e13-ac06-2fedf6f7b768" },
     ],
     links: [
       {
