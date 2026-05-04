@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppFeedRouteImport } from './routes/_app/feed'
+import { Route as AppChatRouteImport } from './routes/_app/chat'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -33,15 +34,22 @@ const AppFeedRoute = AppFeedRouteImport.update({
   path: '/feed',
   getParentRoute: () => AppRoute,
 } as any)
+const AppChatRoute = AppChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/chat': typeof AppChatRoute
   '/feed': typeof AppFeedRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/chat': typeof AppChatRoute
   '/feed': typeof AppFeedRoute
 }
 export interface FileRoutesById {
@@ -49,14 +57,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_app/chat': typeof AppChatRoute
   '/_app/feed': typeof AppFeedRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/feed'
+  fullPaths: '/' | '/auth' | '/chat' | '/feed'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/feed'
-  id: '__root__' | '/' | '/_app' | '/auth' | '/_app/feed'
+  to: '/' | '/auth' | '/chat' | '/feed'
+  id: '__root__' | '/' | '/_app' | '/auth' | '/_app/chat' | '/_app/feed'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,14 +104,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppFeedRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/chat': {
+      id: '/_app/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof AppChatRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppChatRoute: typeof AppChatRoute
   AppFeedRoute: typeof AppFeedRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppChatRoute: AppChatRoute,
   AppFeedRoute: AppFeedRoute,
 }
 
