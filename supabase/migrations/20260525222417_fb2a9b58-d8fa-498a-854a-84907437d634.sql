@@ -1,0 +1,1 @@
+revoke execute on function public.process_pending_withdrawals() from authenticated;
