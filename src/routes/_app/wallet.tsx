@@ -44,13 +44,11 @@ function Wallet() {
   };
 
   useEffect(() => { loadHistory(); }, [profile?.id]);
-  // Poll to flip pending → completed after the 1-min processing delay
+  // Poll to refresh withdrawal status (just reload history, no admin RPC)
   useEffect(() => {
     const i = setInterval(() => {
       if (history.some(w => w.status === "pending")) {
-        (async () => {
-          try { await supabase.rpc("process_pending_withdrawals" as never); await loadHistory(); } catch {}
-        })();
+        loadHistory().catch(() => {});
       }
     }, 5000);
     return () => clearInterval(i);
