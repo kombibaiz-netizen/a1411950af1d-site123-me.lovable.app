@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Heart, Plus, Zap, Bot } from "lucide-react";
+import { Heart, Plus, Zap, Bot, Tv, Gamepad2, Megaphone, Globe2 } from "lucide-react";
 import { addEarning } from "@/lib/earn";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
@@ -16,12 +16,28 @@ const POSTS = [
   { user: "@orangepilled", text: "Just told my barista about Lightning. She zapped me back.", color: "from-amber-500/20 to-rose-500/10" },
 ];
 
+const AD_NETWORKS = [
+  { id: "admob",       name: "Google AdMob",   icon: Megaphone, payout: 60, cpm: "$8.20", color: "from-blue-500/20 to-emerald-500/10",  badge: "bg-blue-500/15 text-blue-400" },
+  { id: "unity",       name: "Unity Ads",      icon: Gamepad2,  payout: 75, cpm: "$11.40", color: "from-zinc-500/20 to-slate-500/10",   badge: "bg-zinc-500/15 text-zinc-300" },
+  { id: "ironsource",  name: "ironSource",     icon: Tv,        payout: 55, cpm: "$7.10",  color: "from-purple-500/20 to-fuchsia-500/10", badge: "bg-purple-500/15 text-purple-400" },
+  { id: "applovin",    name: "AppLovin MAX",   icon: Zap,       payout: 80, cpm: "$12.90", color: "from-amber-500/20 to-orange-500/10", badge: "bg-amber-500/15 text-amber-400" },
+  { id: "meta",        name: "Meta Audience",  icon: Globe2,    payout: 65, cpm: "$9.30",  color: "from-sky-500/20 to-indigo-500/10",   badge: "bg-sky-500/15 text-sky-400" },
+] as const;
+
+type Network = typeof AD_NETWORKS[number];
+
 function Feed() {
   const { refreshProfile } = useAuth();
   const [earned, setEarned] = useState(0);
   const [auto, setAuto] = useState(false);
   const [autoCount, setAutoCount] = useState(0);
   const [cooldown, setCooldown] = useState(0);
+  const [enabled, setEnabled] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(AD_NETWORKS.map(n => [n.id, true]))
+  );
+  const [networkStats, setNetworkStats] = useState<Record<string, { count: number; sats: number }>>(
+    () => Object.fromEntries(AD_NETWORKS.map(n => [n.id, { count: 0, sats: 0 }]))
+  );
   const seen = useRef<Set<number>>(new Set());
 
   useEffect(() => {
@@ -46,15 +62,30 @@ function Feed() {
     return () => obs.disconnect();
   }, [refreshProfile]);
 
-  const watchAd = async () => {
-    toast.loading("Watching sponsored content...", { id: "ad" });
+  const pickNetwork = (): Network | null => {
+    const active = AD_NETWORKS.filter(n => enabled[n.id]);
+    if (active.length === 0) return null;
+    return active[Math.floor(Math.random() * active.length)];
+  };
+
+  const watchAd = async (forced?: Network) => {
+    const net = forced ?? pickNetwork();
+    if (!net) {
+      toast.error("Enable at least one ad network");
+      return false;
+    }
+    toast.loading(`Loading ${net.name}…`, { id: "ad" });
     return new Promise<boolean>((resolve) => {
       setTimeout(async () => {
         try {
-          await addEarning("scroll", 50, { type: "ad" });
-          setEarned((e) => e + 50);
+          await addEarning("scroll", net.payout, { type: "ad", network: net.id });
+          setEarned((e) => e + net.payout);
+          setNetworkStats((s) => ({
+            ...s,
+            [net.id]: { count: s[net.id].count + 1, sats: s[net.id].sats + net.payout },
+          }));
           refreshProfile();
-          toast.success("+50 sats from ad", { id: "ad" });
+          toast.success(`+${net.payout} sats · ${net.name}`, { id: "ad" });
           resolve(true);
         } catch {
           toast.error("Failed", { id: "ad" });
@@ -89,7 +120,7 @@ function Feed() {
 
     return () => { cancelled = true; clearInterval(i); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auto]);
+  }, [auto, enabled]);
 
   return (
     <div className="px-4 py-4 space-y-4">
@@ -104,7 +135,7 @@ function Feed() {
       </div>
 
       <div className="space-y-2">
-        <button onClick={watchAd} className="w-full rounded-2xl bg-gradient-primary text-primary-foreground p-4 font-semibold flex items-center justify-center gap-2 shadow-glow">
+        <button onClick={() => watchAd()} className="w-full rounded-2xl bg-gradient-primary text-primary-foreground p-4 font-semibold flex items-center justify-center gap-2 shadow-glow">
           <Zap className="h-4 w-4" /> Watch sponsored — earn 50 sats
         </button>
         <button
@@ -120,6 +151,48 @@ function Feed() {
           </span>
         </button>
       </div>
+
+      <section className="rounded-2xl border border-border bg-card p-4 shadow-card space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="font-semibold text-sm">Ad networks</div>
+            <div className="text-[11px] text-muted-foreground">Mediated waterfall · tap to play a specific network</div>
+          </div>
+          <div className="text-[11px] font-mono text-primary">{AD_NETWORKS.filter(n=>enabled[n.id]).length}/{AD_NETWORKS.length} live</div>
+        </div>
+        <div className="grid grid-cols-1 gap-2">
+          {AD_NETWORKS.map((n) => {
+            const Icon = n.icon;
+            const stat = networkStats[n.id];
+            const on = enabled[n.id];
+            return (
+              <div key={n.id} className={`rounded-xl border p-3 flex items-center gap-3 bg-gradient-to-br ${n.color} ${on ? "border-primary/40" : "border-border opacity-60"}`}>
+                <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${n.badge}`}>
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold truncate">{n.name}</div>
+                  <div className="text-[11px] text-muted-foreground">
+                    eCPM {n.cpm} · {n.payout} sats/ad · {stat.count} shown · +{stat.sats} sats
+                  </div>
+                </div>
+                <button
+                  onClick={() => watchAd(n)}
+                  className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-primary text-primary-foreground"
+                >
+                  Play
+                </button>
+                <button
+                  onClick={() => setEnabled((p) => ({ ...p, [n.id]: !p[n.id] }))}
+                  className={`text-[10px] font-bold px-2 py-1 rounded-md border ${on ? "border-primary text-primary" : "border-border text-muted-foreground"}`}
+                >
+                  {on ? "ON" : "OFF"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       {POSTS.map((p, i) => (
         <article key={i} data-idx={i} className={`rounded-2xl border border-border bg-gradient-to-br ${p.color} bg-card p-5 min-h-[280px] flex flex-col justify-between shadow-card`}>
