@@ -16,6 +16,12 @@ dist-ssr
 .nitro
 *.local
 
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+bun.lockb
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
