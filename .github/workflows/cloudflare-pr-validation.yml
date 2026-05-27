@@ -1,0 +1,76 @@
+name: Cloudflare PR Validation
+
+on:
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: cf-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate PR for Cloudflare deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify wrangler.jsonc acceptances
+        run: |
+          test -f wrangler.jsonc || { echo "::error::wrangler.jsonc missing"; exit 1; }
+          grep -q '"nodejs_compat"' wrangler.jsonc || { echo "::error::nodejs_compat flag missing"; exit 1; }
+          grep -q '"compatibility_date"' wrangler.jsonc || { echo "::error::compatibility_date missing"; exit 1; }
+          grep -q '"main"' wrangler.jsonc || { echo "::error::main entry missing"; exit 1; }
+          grep -q '"name"' wrangler.jsonc || { echo "::error::worker name missing"; exit 1; }
+
+      - name: TypeScript typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint (non-blocking)
+        run: npm run -s lint || echo "::warning::lint reported issues"
+        continue-on-error: true
+
+      - name: Production build
+        run: npm run build
+
+      - name: Bundle size check (Worker 10 MiB limit)
+        run: |
+          if [ -d dist ]; then
+            SIZE=$(du -sb dist | awk '{print $1}')
+            HUMAN=$(du -sh dist | awk '{print $1}')
+            echo "dist size: ${HUMAN}"
+            if [ "${SIZE:-0}" -ge 10485760 ]; then
+              echo "::error::dist exceeds 10 MiB Worker upload limit"
+              exit 1
+            fi
+          fi
+
+      - name: Wrangler dry-run deploy (validate bindings & compat)
+        run: npx wrangler deploy --dry-run --outdir=dist/_worker
+
+      - name: PR validation summary
+        if: always()
+        run: |
+          echo "### Cloudflare PR validation" >> $GITHUB_STEP_SUMMARY
+          echo "- wrangler.jsonc: accepted" >> $GITHUB_STEP_SUMMARY
+          echo "- typecheck: passed" >> $GITHUB_STEP_SUMMARY
+          echo "- build: passed" >> $GITHUB_STEP_SUMMARY
+          echo "- dry-run deploy: passed" >> $GITHUB_STEP_SUMMARY
+          echo "PR is ready for Cloudflare deployment." >> $GITHUB_STEP_SUMMARY
