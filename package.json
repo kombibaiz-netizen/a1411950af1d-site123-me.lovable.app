@@ -13,6 +13,9 @@
     "deploy:validate": "vite build && wrangler deploy --dry-run --outdir=dist/_worker",
     "cf:whoami": "wrangler whoami",
     "cf:tail": "wrangler tail",
+    "vercel:build": "vite build",
+    "vercel:check": "vite build && test -d dist && echo 'Vercel build accepted'",
+    "deploy:accept": "bash scripts/deploy-accept.sh",
     "cf-typegen": "wrangler types",
     "lint": "eslint .",
     "format": "prettier --write ."
