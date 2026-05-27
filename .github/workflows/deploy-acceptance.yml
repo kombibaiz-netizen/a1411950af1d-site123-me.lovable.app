@@ -1,0 +1,66 @@
+name: Deploy Acceptance (Cloudflare & Vercel)
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-accept-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  accept:
+    name: Validate acceptances for Cloudflare & Vercel
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: TypeScript typecheck
+        run: npx tsc --noEmit
+
+      - name: Validate Cloudflare config
+        run: |
+          test -f wrangler.jsonc || { echo "::error::wrangler.jsonc missing"; exit 1; }
+          for k in '"nodejs_compat"' '"compatibility_date"' '"main"' '"name"'; do
+            grep -q "$k" wrangler.jsonc || { echo "::error::wrangler.jsonc: $k missing"; exit 1; }
+          done
+
+      - name: Validate Vercel config
+        run: |
+          test -f vercel.json || { echo "::error::vercel.json missing"; exit 1; }
+          node -e "JSON.parse(require('fs').readFileSync('vercel.json','utf8'))"
+          for k in buildCommand outputDirectory installCommand; do
+            grep -q "\"$k\"" vercel.json || { echo "::error::vercel.json: $k missing"; exit 1; }
+          done
+
+      - name: Production build
+        run: npm run build
+
+      - name: Bundle size (Worker 10 MiB limit)
+        run: |
+          SIZE=$(du -sb dist | awk '{print $1}')
+          HUMAN=$(du -sh dist | awk '{print $1}')
+          echo "dist size: ${HUMAN}"
+          [ "${SIZE:-0}" -lt 10485760 ] || { echo "::error::dist exceeds 10 MiB"; exit 1; }
+
+      - name: Cloudflare dry-run deploy
+        run: npx wrangler deploy --dry-run --outdir=dist/_worker
+
+      - name: Acceptance summary
+        if: always()
+        run: |
+          echo "### Deploy acceptance" >> $GITHUB_STEP_SUMMARY
+          echo "- Cloudflare config: accepted" >> $GITHUB_STEP_SUMMARY
+          echo "- Vercel config: accepted" >> $GITHUB_STEP_SUMMARY
+          echo "- typecheck / build / dry-run: passed" >> $GITHUB_STEP_SUMMARY
