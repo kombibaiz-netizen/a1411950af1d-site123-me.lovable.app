@@ -1,0 +1,38 @@
+name: Schedule Vercel Deploy Commit
+
+on:
+  push:
+    branches: [main, master]
+  schedule:
+    # Daily redeploy commit at 03:00 UTC to refresh the Vercel deployment.
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: vercel-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  trigger-vercel-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name  "vercel-deploy-bot"
+          git config user.email "deploy-bot@users.noreply.github.com"
+
+      - name: Create empty deploy commit
+        run: |
+          STAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          git commit --allow-empty -m "chore(deploy): trigger Vercel deployment @ ${STAMP}"
+          git push origin HEAD:${GITHUB_REF#refs/heads/}
+
+      - name: Trigger Vercel Deploy Hook
+        if: ${{ secrets.VERCEL_DEPLOY_HOOK_URL != '' }}
+        run: curl -fsSL -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"

@@ -3,6 +3,6 @@
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "installCommand": "bun install --frozen-lockfile",
-  "buildCommand": "bun run build",
+  "buildCommand": "bash scripts/vercel-deploy-commit.sh && bun run build",
   "outputDirectory": "dist"
 }
