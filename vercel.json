@@ -2,7 +2,7 @@
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "installCommand": "bun install --frozen-lockfile",
-  "buildCommand": "bash scripts/vercel-deploy-commit.sh && bun run build",
+  "installCommand": "npm ci --no-audit --no-fund",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist"
 }
